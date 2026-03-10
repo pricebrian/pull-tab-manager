@@ -94,13 +94,13 @@ export function downloadQBCsv(job: {
 
   // QB CSV headers
   const headers = [
-    '*Name',
-    'Type',
+    'Product/service name',
+    'Item type',
     'SKU',
     'Category',
-    'Sales Description',
+    'Sale description',
     'Sales price/rate',
-    'Income Account',
+    'Income account',
   ]
 
   const rows: string[][] = []
