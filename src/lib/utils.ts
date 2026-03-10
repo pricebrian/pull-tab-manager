@@ -17,13 +17,32 @@ export function pct(a: number, b: number): string {
 }
 
 /**
- * Adds a class to body that hides everything except .modal-print-area,
- * triggers window.print(), then cleans up.
+ * Clones .modal-print-area into a fresh overlay div on <body>,
+ * hides everything else, prints, then cleans up.
+ * This avoids CSS cascade issues with Tailwind utilities.
  */
 export function printModalContent() {
+  const source = document.querySelector('.modal-print-area')
+  if (!source) return
+
+  // Clone the content
+  const clone = source.cloneNode(true) as HTMLElement
+
+  // Strip .no-print elements from the clone
+  clone.querySelectorAll('.no-print').forEach((el) => el.remove())
+
+  // Create overlay container
+  const overlay = document.createElement('div')
+  overlay.id = 'print-overlay'
+  overlay.appendChild(clone)
+  document.body.appendChild(overlay)
+
+  // Activate print mode
   document.body.classList.add('modal-printing')
+
   const cleanup = () => {
     document.body.classList.remove('modal-printing')
+    overlay.remove()
     window.removeEventListener('afterprint', cleanup)
   }
   window.addEventListener('afterprint', cleanup)
