@@ -40,31 +40,21 @@ body {
     display: block !important;
   }
 
-  /* Ship log print: strip modal chrome, show only content */
-  #ship-log-print {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: white !important;
-    padding: 0.5in;
-    overflow: visible;
-  }
-
   /* Keep table rows together across page breaks */
-  #ship-log-print table {
+  table {
     page-break-inside: auto;
   }
 
-  #ship-log-print tr {
+  tr {
     page-break-inside: avoid;
     page-break-after: auto;
   }
 
-  #ship-log-print thead {
+  thead {
     display: table-header-group;
   }
 
-  #ship-log-print tfoot {
+  tfoot {
     display: table-footer-group;
   }
 
