@@ -13,7 +13,6 @@ import {
   BarChart3,
   Tag,
   Package,
-  MonitorSmartphone,
   ChevronDown,
   Archive,
   FileSpreadsheet,
@@ -28,6 +27,7 @@ export function JobCard({ job }: JobCardProps) {
   const [showTracker, setShowTracker] = useState(false)
   const [showShipLog, setShowShipLog] = useState(false)
   const [showLabels, setShowLabels] = useState(false)
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
   const [isArchiving, startArchiveTransition] = useTransition()
 
   const deals = job.deals || []
@@ -51,31 +51,20 @@ export function JobCard({ job }: JobCardProps) {
           : '#f87171'
       : undefined
 
-  const archiveButton = !job.archived ? (
-    <button
-      className="text-ptm-text3 hover:text-ptm-text transition-colors p-1 rounded disabled:opacity-50"
-      onClick={(e) => {
-        e.stopPropagation()
-        startArchiveTransition(async () => { await archiveJob(job.id) })
-      }}
-      disabled={isArchiving}
-      title="Archive job"
-    >
-      <Archive size={14} />
-    </button>
-  ) : (
-    <button
-      className="text-ptm-accent2 hover:brightness-110 transition-colors p-1 rounded disabled:opacity-50"
-      onClick={(e) => {
-        e.stopPropagation()
-        startArchiveTransition(async () => { await unarchiveJob(job.id) })
-      }}
-      disabled={isArchiving}
-      title="Unarchive job"
-    >
-      <Archive size={14} />
-    </button>
-  )
+  const handleArchive = (e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    if (job.archived) {
+      // Unarchive doesn't need confirmation
+      startArchiveTransition(async () => { await unarchiveJob(job.id) })
+    } else {
+      setShowArchiveConfirm(true)
+    }
+  }
+
+  const confirmArchive = () => {
+    setShowArchiveConfirm(false)
+    startArchiveTransition(async () => { await archiveJob(job.id) })
+  }
 
   return (
     <>
@@ -83,20 +72,20 @@ export function JobCard({ job }: JobCardProps) {
         /* ── Collapsed card ── */
         <div
           className={cn(
-            'bg-ptm-bg2 border border-ptm-border rounded-lg px-5 py-3 cursor-pointer transition-colors hover:border-ptm-border2',
+            'bg-ptm-bg2 border border-ptm-border rounded-lg px-4 sm:px-5 py-3 cursor-pointer transition-colors hover:border-ptm-border2',
             job.archived && 'opacity-60'
           )}
           onClick={() => setExpanded(true)}
         >
-          <div className="flex items-center gap-4 flex-wrap">
-            <span className="font-[family-name:var(--font-barlow-condensed)] font-bold text-base text-ptm-accent tracking-wide min-w-[120px]">
+          <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+            <span className="font-[family-name:var(--font-barlow-condensed)] font-bold text-sm sm:text-base text-ptm-accent tracking-wide min-w-[100px] sm:min-w-[120px]">
               {job.job_number}
             </span>
-            <span className="text-sm text-ptm-text font-medium flex-1 min-w-[120px] truncate">
+            <span className="text-sm text-ptm-text font-medium flex-1 min-w-[80px] sm:min-w-[120px] truncate">
               {job.customer}
             </span>
             {job.due_date && (
-              <span className="text-[11px] text-ptm-text3">
+              <span className="text-[11px] text-ptm-text3 hidden sm:inline">
                 Due{' '}
                 {new Date(job.due_date + 'T00:00:00').toLocaleDateString(
                   'en-US',
@@ -104,13 +93,13 @@ export function JobCard({ job }: JobCardProps) {
                 )}
               </span>
             )}
-            <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-ptm-accent/30 text-ptm-accent bg-ptm-accent/10">
+            <span className="text-[10px] font-semibold uppercase tracking-wider px-2 sm:px-2.5 py-0.5 rounded-full border border-ptm-accent/30 text-ptm-accent bg-ptm-accent/10">
               {job.stage}
             </span>
             <span className="text-xs text-ptm-text2">
               {totalDeals} deals
             </span>
-            <span className="text-xs text-ptm-text2">
+            <span className="text-xs text-ptm-text2 hidden sm:inline">
               {totalTickets.toLocaleString()} tickets
             </span>
             {overallYield !== null && (
@@ -118,7 +107,19 @@ export function JobCard({ job }: JobCardProps) {
                 {overallYield}%
               </span>
             )}
-            {archiveButton}
+            <button
+              className={cn(
+                'p-1 rounded disabled:opacity-50 transition-colors',
+                job.archived
+                  ? 'text-ptm-accent2 hover:brightness-110'
+                  : 'text-ptm-text3 hover:text-ptm-text'
+              )}
+              onClick={(e) => handleArchive(e)}
+              disabled={isArchiving}
+              title={job.archived ? 'Unarchive job' : 'Archive job'}
+            >
+              <Archive size={14} />
+            </button>
             <ChevronDown size={16} className="text-ptm-text3" />
           </div>
         </div>
@@ -126,7 +127,7 @@ export function JobCard({ job }: JobCardProps) {
         /* ── Expanded card ── */
         <div
           className={cn(
-            'bg-ptm-bg2 border border-ptm-border rounded-lg p-5 flex flex-col gap-3.5 transition-colors hover:border-ptm-border2',
+            'bg-ptm-bg2 border border-ptm-border rounded-lg p-4 sm:p-5 flex flex-col gap-3 sm:gap-3.5 transition-colors hover:border-ptm-border2',
             job.archived && 'opacity-60'
           )}
         >
@@ -152,9 +153,9 @@ export function JobCard({ job }: JobCardProps) {
                 </div>
               )}
             </div>
-            <div className="flex gap-4 items-start">
+            <div className="flex gap-3 sm:gap-4 items-start">
               <div className="text-center">
-                <span className="block font-[family-name:var(--font-barlow-condensed)] font-bold text-[22px] text-ptm-text leading-none">
+                <span className="block font-[family-name:var(--font-barlow-condensed)] font-bold text-lg sm:text-[22px] text-ptm-text leading-none">
                   {totalDeals}
                 </span>
                 <label className="text-[10px] text-ptm-text3 uppercase tracking-wider">
@@ -162,7 +163,7 @@ export function JobCard({ job }: JobCardProps) {
                 </label>
               </div>
               <div className="text-center">
-                <span className="block font-[family-name:var(--font-barlow-condensed)] font-bold text-[22px] text-ptm-text leading-none">
+                <span className="block font-[family-name:var(--font-barlow-condensed)] font-bold text-lg sm:text-[22px] text-ptm-text leading-none">
                   {totalTickets.toLocaleString()}
                 </span>
                 <label className="text-[10px] text-ptm-text3 uppercase tracking-wider">
@@ -172,7 +173,7 @@ export function JobCard({ job }: JobCardProps) {
               {overallYield !== null && (
                 <div className="text-center">
                   <span
-                    className="block font-[family-name:var(--font-barlow-condensed)] font-bold text-[22px] leading-none"
+                    className="block font-[family-name:var(--font-barlow-condensed)] font-bold text-lg sm:text-[22px] leading-none"
                     style={{ color: yieldColor }}
                   >
                     {overallYield}%
@@ -244,64 +245,80 @@ export function JobCard({ job }: JobCardProps) {
             </div>
           )}
 
-          {/* Actions */}
-          <div className="flex gap-2 flex-wrap">
+          {/* Actions — grid on mobile, flex on desktop */}
+          <div className="grid grid-cols-2 sm:flex gap-2 sm:flex-wrap">
             <button
-              className="flex items-center gap-1.5 text-xs font-medium text-ptm-text2 bg-ptm-bg3 border border-ptm-border px-3.5 py-1.5 rounded-lg cursor-pointer transition-all hover:text-ptm-text hover:border-ptm-border2 hover:bg-ptm-bg4"
+              className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-medium text-ptm-text2 bg-ptm-bg3 border border-ptm-border px-3 sm:px-3.5 py-2 sm:py-1.5 rounded-lg cursor-pointer transition-all hover:text-ptm-text hover:border-ptm-border2 hover:bg-ptm-bg4"
               onClick={() => setShowTracker(true)}
             >
               <BarChart3 size={13} /> Production
             </button>
             <button
-              className="flex items-center gap-1.5 text-xs font-medium text-ptm-text2 bg-ptm-bg3 border border-ptm-border px-3.5 py-1.5 rounded-lg cursor-pointer transition-all hover:text-ptm-text hover:border-ptm-border2 hover:bg-ptm-bg4"
+              className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-medium text-ptm-text2 bg-ptm-bg3 border border-ptm-border px-3 sm:px-3.5 py-2 sm:py-1.5 rounded-lg cursor-pointer transition-all hover:text-ptm-text hover:border-ptm-border2 hover:bg-ptm-bg4"
               onClick={() => setShowLabels(true)}
             >
               <Tag size={13} /> Labels
             </button>
             <button
-              className="flex items-center gap-1.5 text-xs font-medium text-ptm-text2 bg-ptm-bg3 border border-ptm-border px-3.5 py-1.5 rounded-lg cursor-pointer transition-all hover:text-ptm-text hover:border-ptm-border2 hover:bg-ptm-bg4"
+              className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-medium text-ptm-text2 bg-ptm-bg3 border border-ptm-border px-3 sm:px-3.5 py-2 sm:py-1.5 rounded-lg cursor-pointer transition-all hover:text-ptm-text hover:border-ptm-border2 hover:bg-ptm-bg4"
               onClick={() => setShowShipLog(true)}
             >
               <Package size={13} /> Ship Log
             </button>
             <button
-              className="flex items-center gap-1.5 text-xs font-medium text-ptm-green bg-ptm-bg3 border border-ptm-green/30 px-3.5 py-1.5 rounded-lg cursor-pointer transition-all hover:brightness-110 hover:border-ptm-green/50"
+              className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-medium text-ptm-green bg-ptm-bg3 border border-ptm-green/30 px-3 sm:px-3.5 py-2 sm:py-1.5 rounded-lg cursor-pointer transition-all hover:brightness-110 hover:border-ptm-green/50"
               onClick={() => downloadQBCsv(job)}
               title="Download QuickBooks CSV"
             >
               <FileSpreadsheet size={13} /> QB CSV
             </button>
-            <button
-              className="flex items-center gap-1.5 text-xs font-medium text-ptm-monday bg-ptm-bg3 border border-ptm-monday/30 px-3.5 py-1.5 rounded-lg cursor-not-allowed opacity-50"
-              title="Coming soon"
-              disabled
-            >
-              <MonitorSmartphone size={13} /> Monday
-              <span className="text-[9px] bg-ptm-bg4 text-ptm-text3 px-1.5 py-0.5 rounded-full">
-                Soon
-              </span>
-            </button>
             {!job.archived ? (
               <button
-                className="flex items-center gap-1.5 text-xs font-medium text-ptm-text2 bg-ptm-bg3 border border-ptm-border px-3.5 py-1.5 rounded-lg cursor-pointer transition-all hover:text-ptm-text hover:border-ptm-border2 hover:bg-ptm-bg4 ml-auto disabled:opacity-50"
-                onClick={() =>
-                  startArchiveTransition(async () => { await archiveJob(job.id) })
-                }
+                className="col-span-2 sm:col-span-1 flex items-center justify-center sm:justify-start gap-1.5 text-xs font-medium text-ptm-text2 bg-ptm-bg3 border border-ptm-border px-3 sm:px-3.5 py-2 sm:py-1.5 rounded-lg cursor-pointer transition-all hover:text-ptm-text hover:border-ptm-border2 hover:bg-ptm-bg4 sm:ml-auto disabled:opacity-50"
+                onClick={() => handleArchive()}
                 disabled={isArchiving}
               >
                 <Archive size={13} /> Archive
               </button>
             ) : (
               <button
-                className="flex items-center gap-1.5 text-xs font-medium text-ptm-accent2 bg-ptm-accent2/10 border border-ptm-accent2/30 px-3.5 py-1.5 rounded-lg cursor-pointer transition-all hover:brightness-110 ml-auto disabled:opacity-50"
-                onClick={() =>
-                  startArchiveTransition(async () => { await unarchiveJob(job.id) })
-                }
+                className="col-span-2 sm:col-span-1 flex items-center justify-center sm:justify-start gap-1.5 text-xs font-medium text-ptm-accent2 bg-ptm-accent2/10 border border-ptm-accent2/30 px-3 sm:px-3.5 py-2 sm:py-1.5 rounded-lg cursor-pointer transition-all hover:brightness-110 sm:ml-auto disabled:opacity-50"
+                onClick={() => handleArchive()}
                 disabled={isArchiving}
               >
                 <Archive size={13} /> Unarchive
               </button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Archive confirmation */}
+      {showArchiveConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-ptm-bg2 border border-ptm-border rounded-xl p-5 max-w-sm w-full shadow-2xl">
+            <h3 className="font-[family-name:var(--font-barlow-condensed)] font-bold text-base text-ptm-text tracking-wide">
+              Archive Job?
+            </h3>
+            <p className="text-sm text-ptm-text2 mt-2">
+              Are you sure you want to archive{' '}
+              <span className="text-ptm-accent font-semibold">{job.job_number}</span>?
+              It will be hidden from the default view but still searchable via the Archived filter.
+            </p>
+            <div className="flex gap-2 mt-4 justify-end">
+              <button
+                className="px-4 py-1.5 text-xs font-medium text-ptm-text2 bg-ptm-bg3 border border-ptm-border rounded-lg cursor-pointer transition-all hover:text-ptm-text hover:border-ptm-border2"
+                onClick={() => setShowArchiveConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-1.5 text-xs font-medium text-ptm-bg bg-ptm-accent border border-ptm-accent rounded-lg cursor-pointer transition-all hover:brightness-110"
+                onClick={confirmArchive}
+              >
+                Yes, Archive
+              </button>
+            </div>
           </div>
         </div>
       )}
