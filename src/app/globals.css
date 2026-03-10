@@ -58,6 +58,17 @@ body {
     display: table-footer-group;
   }
 
+  /* Labels: keep each box+flare pair together */
+  .label-pair {
+    page-break-inside: avoid;
+  }
+
+  .label-card {
+    background: white !important;
+    color: black !important;
+    border-color: #1a1a1a !important;
+  }
+
   @page {
     margin: 0.4in;
     size: letter;

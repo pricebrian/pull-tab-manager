@@ -1,107 +1,167 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { formatSerial, currency } from '@/lib/utils'
-import type { Job } from '@/types/database'
+import type { Job, Deal } from '@/types/database'
+import JsBarcode from 'jsbarcode'
 
 interface LabelsModalProps {
   job: Job
   onClose: () => void
 }
 
+function Barcode({ value, height = 40 }: { value: string; height?: number }) {
+  const svgRef = useRef<SVGSVGElement>(null)
+
+  useEffect(() => {
+    if (svgRef.current && value) {
+      try {
+        JsBarcode(svgRef.current, value, {
+          format: 'CODE128',
+          width: 1.5,
+          height,
+          displayValue: false,
+          margin: 0,
+        })
+      } catch {
+        // If barcode generation fails, leave SVG empty
+      }
+    }
+  }, [value, height])
+
+  return <svg ref={svgRef} />
+}
+
+function BoxLabel({ deal, date }: { deal: Deal; date: string }) {
+  const serial = formatSerial(deal.serial)
+  const formId = deal.sku || '—'
+  const tcnt = (deal.tickets_per_deal || 0).toLocaleString()
+  const price = deal.price || 0
+  const totalIn = (deal.tickets_per_deal || 0) * price
+  const payout = deal.payout || 0
+  const profit = totalIn - payout
+  const profitPct = totalIn > 0 ? ((profit / totalIn) * 100).toFixed(2) : '0.00'
+
+  return (
+    <div className="label-card bg-white text-black border-2 border-gray-800 rounded p-3 font-[family-name:var(--font-barlow-condensed)] break-inside-avoid w-[360px]">
+      <div className="flex gap-3">
+        {/* Left: Barcodes + game name */}
+        <div className="flex flex-col items-center gap-1 min-w-[120px]">
+          <Barcode value={formId} height={28} />
+          <span className="text-[10px] font-semibold tracking-wider">
+            {formId}
+          </span>
+          <span className="font-extrabold text-sm tracking-wide uppercase mt-1">
+            {deal.game_name}
+          </span>
+          <Barcode value={serial} height={28} />
+          <span className="text-[10px] font-semibold tracking-wider">
+            {serial}
+          </span>
+        </div>
+
+        {/* Right: Details */}
+        <div className="flex flex-col justify-between flex-1 text-right">
+          <div>
+            <div className="font-extrabold text-xl leading-tight">
+              {serial}
+            </div>
+            <div className="font-bold text-sm mt-0.5">FORM {formId}</div>
+          </div>
+          <div className="text-[11px] leading-relaxed mt-1">
+            <div className="font-semibold">
+              TCNT {tcnt} / {currency(price)}
+            </div>
+            <div>
+              IN {currency(totalIn)} / PAYS {currency(payout)}
+            </div>
+            <div className="font-semibold">
+              Profit: {currency(profit)} - {profitPct}%
+            </div>
+          </div>
+          <div className="text-[10px] mt-1">{date}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function FlareLabel({ deal, date }: { deal: Deal; date: string }) {
+  const serial = formatSerial(deal.serial)
+  const formId = deal.sku || '—'
+  const tcnt = (deal.tickets_per_deal || 0).toLocaleString()
+
+  return (
+    <div className="label-card bg-white text-black border-2 border-gray-800 rounded p-3 font-[family-name:var(--font-barlow-condensed)] break-inside-avoid w-[360px]">
+      <div className="flex gap-3">
+        {/* Left: Barcodes + game name */}
+        <div className="flex flex-col items-center gap-1 min-w-[120px]">
+          <Barcode value={formId} height={28} />
+          <span className="text-[10px] font-semibold tracking-wider">
+            {formId}
+          </span>
+          <span className="font-extrabold text-sm tracking-wide uppercase mt-1">
+            {deal.game_name}
+          </span>
+          <Barcode value={serial} height={28} />
+          <span className="text-[10px] font-semibold tracking-wider">
+            {serial}
+          </span>
+        </div>
+
+        {/* Right: Details (simplified) */}
+        <div className="flex flex-col justify-between flex-1 text-right">
+          <div>
+            <div className="font-extrabold text-xl leading-tight">
+              {serial}
+            </div>
+            <div className="font-bold text-sm mt-0.5">FORM {formId}</div>
+          </div>
+          <div className="text-[11px] mt-1">
+            <div className="font-semibold">TCNT {tcnt}</div>
+          </div>
+          <div className="text-[10px] mt-1">{date}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function LabelsModal({ job, onClose }: LabelsModalProps) {
   const deals = job.deals || []
+  const today = new Date().toLocaleDateString('en-US', {
+    month: 'numeric',
+    day: 'numeric',
+    year: 'numeric',
+  })
 
   return (
     <Modal title="Deal Labels" onClose={onClose} wide>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
-        {deals.map((d) => {
-          const revenue = (d.tickets_per_deal || 0) * (d.price || 0)
-          const profit = revenue - (d.payout || 0)
-          const profitPct =
-            revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : '0.0'
+      <div id="labels-print">
+        <div className="text-xs text-ptm-text3 mb-4 no-print">
+          {deals.length} deals × 2 labels each = {deals.length * 2} labels
+          total (Box + Flare per deal)
+        </div>
 
-          return (
-            <div
-              key={d.id}
-              className="bg-ptm-bg3 border-2 border-ptm-border2 rounded-lg p-4 font-[family-name:var(--font-barlow-condensed)] print:border-2 print:border-gray-800 print:break-inside-avoid"
-            >
-              {/* Label header */}
-              <div className="flex justify-between items-start mb-3 pb-2.5 border-b border-ptm-border">
-                <span className="font-extrabold text-lg text-ptm-text tracking-wide uppercase">
-                  {d.game_name}
-                </span>
-                <span className="font-bold text-base text-ptm-accent2">
-                  #{formatSerial(d.serial)}
-                </span>
-              </div>
-
-              {/* Label grid */}
-              <div className="grid grid-cols-3 gap-2">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[9px] text-ptm-text3 uppercase tracking-wider">
-                    Form/SKU
-                  </span>
-                  <strong className="text-sm text-ptm-text font-bold">
-                    {d.sku || '—'}
-                  </strong>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[9px] text-ptm-text3 uppercase tracking-wider">
-                    Tickets/Deal
-                  </span>
-                  <strong className="text-sm text-ptm-text font-bold">
-                    {d.tickets_per_deal?.toLocaleString()}
-                  </strong>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[9px] text-ptm-text3 uppercase tracking-wider">
-                    Ticket Price
-                  </span>
-                  <strong className="text-sm text-ptm-text font-bold">
-                    {currency(d.price)}
-                  </strong>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[9px] text-ptm-text3 uppercase tracking-wider">
-                    Payout
-                  </span>
-                  <strong className="text-sm text-ptm-text font-bold">
-                    {currency(d.payout)}
-                  </strong>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[9px] text-ptm-text3 uppercase tracking-wider">
-                    Profit
-                  </span>
-                  <strong className="text-sm text-ptm-text font-bold">
-                    {currency(profit)}
-                  </strong>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[9px] text-ptm-text3 uppercase tracking-wider">
-                    Profit %
-                  </span>
-                  <strong className="text-sm text-ptm-text font-bold">
-                    {profitPct}%
-                  </strong>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="mt-2.5 pt-2 border-t border-ptm-border text-[11px] text-ptm-text3">
-                {job.customer} · {new Date().toLocaleDateString()}
-              </div>
+        <div className="flex flex-col gap-3 items-center">
+          {deals.map((d) => (
+            <div key={d.id} className="flex flex-col gap-2 label-pair">
+              <BoxLabel deal={d} date={today} />
+              <FlareLabel deal={d} date={today} />
             </div>
-          )
-        })}
-      </div>
+          ))}
+        </div>
 
-      <div className="text-center mt-5">
-        <Button variant="primary" onClick={() => window.print()}>
-          Print All Labels
-        </Button>
+        <div className="flex gap-2.5 mt-5 justify-center no-print">
+          <Button variant="primary" onClick={() => window.print()}>
+            Print All Labels
+          </Button>
+          <Button variant="secondary" onClick={onClose}>
+            Close
+          </Button>
+        </div>
       </div>
     </Modal>
   )
