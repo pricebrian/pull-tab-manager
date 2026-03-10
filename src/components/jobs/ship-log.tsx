@@ -28,7 +28,7 @@ export function ShipLog({ job, onClose }: ShipLogProps) {
         <div className="flex justify-between items-start mb-5 pb-4 border-b-2 border-ptm-border2">
           <div>
             <div className="font-[family-name:var(--font-barlow-condensed)] font-extrabold text-[22px] tracking-widest text-ptm-text">
-              PULL TAB MANUFACTURING CO.
+              OAKDAY INC.
             </div>
             <div className="text-xs text-ptm-text3 uppercase tracking-widest mt-0.5">
               Ship Log & Pick List
@@ -63,7 +63,6 @@ export function ShipLog({ job, onClose }: ShipLogProps) {
                 'Price',
                 'Payout',
                 'Profit',
-                'Status',
               ].map((h) => (
                 <th
                   key={h}
@@ -78,24 +77,9 @@ export function ShipLog({ job, onClose }: ShipLogProps) {
             {deals.map((d) => {
               const profit =
                 (d.tickets_per_deal || 0) * (d.price || 0) - (d.payout || 0)
-              const statusLabel =
-                d.status === 'lost_gluer'
-                  ? 'Lost – Gluer'
-                  : d.status === 'lost_die_cut'
-                    ? 'Lost – Die Cut'
-                    : 'Active'
-              const statusColor =
-                d.status === 'lost_gluer'
-                  ? 'text-ptm-red'
-                  : d.status === 'lost_die_cut'
-                    ? 'text-ptm-yellow'
-                    : 'text-ptm-green'
 
               return (
-                <tr
-                  key={d.id}
-                  className={d.status !== 'active' ? 'opacity-60' : ''}
-                >
+                <tr key={d.id}>
                   <td className="px-2.5 py-2 border-b border-ptm-border text-ptm-text2">
                     {d.game_name}
                   </td>
@@ -117,9 +101,6 @@ export function ShipLog({ job, onClose }: ShipLogProps) {
                   <td className="px-2.5 py-2 border-b border-ptm-border text-ptm-text2">
                     {currency(profit)}
                   </td>
-                  <td className={`px-2.5 py-2 border-b border-ptm-border font-semibold ${statusColor}`}>
-                    {statusLabel}
-                  </td>
                 </tr>
               )
             })}
@@ -140,7 +121,6 @@ export function ShipLog({ job, onClose }: ShipLogProps) {
                 className="border-t-2 border-ptm-border2"
               ></td>
               <td
-                colSpan={2}
                 className="px-2.5 py-2.5 border-t-2 border-ptm-border2 text-ptm-text font-bold"
               >
                 {currency(totalValue)}
