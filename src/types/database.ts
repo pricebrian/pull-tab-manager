@@ -5,6 +5,7 @@ export type Job = {
   due_date: string | null
   notes: string | null
   stage: Stage
+  archived: boolean
   created_at: string
   updated_at: string
   deals?: Deal[]

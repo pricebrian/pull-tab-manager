@@ -3,12 +3,14 @@
 import { useState, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { STAGES } from '@/lib/constants'
-import type { Job, Stage } from '@/types/database'
+import type { Job } from '@/types/database'
 import { JobCard } from './job-card'
 
 interface JobFiltersProps {
   jobs: Job[]
 }
+
+const FILTER_OPTIONS = ['All', ...STAGES, 'Archived']
 
 export function JobFilters({ jobs }: JobFiltersProps) {
   const [search, setSearch] = useState('')
@@ -23,8 +25,14 @@ export function JobFilters({ jobs }: JobFiltersProps) {
         j.job_number.toLowerCase().includes(q) ||
         j.deals?.some((d) => d.game_name.toLowerCase().includes(q))
 
-      const matchStage =
-        stageFilter === 'All' || j.stage === stageFilter
+      let matchStage: boolean
+      if (stageFilter === 'All') {
+        matchStage = !j.archived
+      } else if (stageFilter === 'Archived') {
+        matchStage = j.archived
+      } else {
+        matchStage = j.stage === stageFilter && !j.archived
+      }
 
       return matchSearch && matchStage
     })
@@ -41,13 +49,15 @@ export function JobFilters({ jobs }: JobFiltersProps) {
           onChange={(e) => setSearch(e.target.value)}
         />
         <div className="flex gap-1 flex-wrap">
-          {['All', ...STAGES].map((s) => (
+          {FILTER_OPTIONS.map((s) => (
             <button
               key={s}
               className={cn(
                 'font-[family-name:var(--font-barlow-condensed)] font-semibold text-xs tracking-wide uppercase px-2.5 py-1 rounded-full border cursor-pointer transition-all',
                 stageFilter === s
-                  ? 'text-ptm-accent bg-ptm-accent/10 border-ptm-accent/30'
+                  ? s === 'Archived'
+                    ? 'text-ptm-text2 bg-ptm-bg4 border-ptm-border2'
+                    : 'text-ptm-accent bg-ptm-accent/10 border-ptm-accent/30'
                   : 'text-ptm-text3 bg-transparent border-ptm-border hover:text-ptm-text hover:border-ptm-border2'
               )}
               onClick={() => setStageFilter(s)}
@@ -69,6 +79,8 @@ export function JobFilters({ jobs }: JobFiltersProps) {
                 </div>
                 <div>No jobs yet. Create your first job to get started.</div>
               </>
+            ) : stageFilter === 'Archived' ? (
+              <div>No archived jobs.</div>
             ) : (
               <div>No jobs match your filter.</div>
             )}

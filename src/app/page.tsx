@@ -12,6 +12,7 @@ export default async function HomePage() {
         total={stats.total}
         active={stats.active}
         shipped={stats.shipped}
+        archived={stats.archived}
         totalDeals={stats.totalDeals}
       />
       <JobFilters jobs={jobs} />

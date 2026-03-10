@@ -131,6 +131,34 @@ export async function updateJobStage(jobId: string, stage: Stage) {
   revalidatePath('/')
 }
 
+export async function archiveJob(jobId: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('jobs')
+    .update({ archived: true })
+    .eq('id', jobId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/')
+}
+
+export async function unarchiveJob(jobId: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('jobs')
+    .update({ archived: false })
+    .eq('id', jobId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/')
+}
+
 export async function updateDealStatuses(
   updates: { id: string; status: DealStatus }[]
 ) {

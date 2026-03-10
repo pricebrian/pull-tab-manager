@@ -2,14 +2,16 @@ interface StatsBarProps {
   total: number
   active: number
   shipped: number
+  archived: number
   totalDeals: number
 }
 
-export function StatsBar({ total, active, shipped, totalDeals }: StatsBarProps) {
+export function StatsBar({ total, active, shipped, archived, totalDeals }: StatsBarProps) {
   const stats = [
     { label: 'Total Jobs', value: total },
     { label: 'Active', value: active },
     { label: 'Shipped', value: shipped },
+    { label: 'Archived', value: archived },
     { label: 'Total Deals', value: totalDeals },
   ]
 

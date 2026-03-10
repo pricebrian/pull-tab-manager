@@ -37,17 +37,19 @@ export async function getJobStats() {
   const supabase = await createClient()
   const { data: jobs } = await supabase
     .from('jobs')
-    .select('stage, deals(id)')
+    .select('stage, archived, deals(id)')
 
-  if (!jobs) return { total: 0, active: 0, shipped: 0, totalDeals: 0 }
+  if (!jobs) return { total: 0, active: 0, shipped: 0, archived: 0, totalDeals: 0 }
 
   const total = jobs.length
-  const shipped = jobs.filter(j => j.stage === 'Shipped').length
-  const active = total - shipped
-  const totalDeals = jobs.reduce(
+  const archivedCount = jobs.filter(j => j.archived).length
+  const nonArchived = jobs.filter(j => !j.archived)
+  const shipped = nonArchived.filter(j => j.stage === 'Shipped').length
+  const active = nonArchived.length - shipped
+  const totalDeals = nonArchived.reduce(
     (sum, j) => sum + (Array.isArray(j.deals) ? j.deals.length : 0),
     0
   )
 
-  return { total, active, shipped, totalDeals }
+  return { total, active, shipped, archived: archivedCount, totalDeals }
 }
