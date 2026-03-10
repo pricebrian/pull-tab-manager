@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { formatSerial, currency } from '@/lib/utils'
-import { TICKET_MODES } from '@/lib/constants'
+import { TICKET_MODES, GAME_TYPES } from '@/lib/constants'
 import { createJob } from '@/lib/actions/jobs'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft } from 'lucide-react'
@@ -14,6 +14,7 @@ type BatchInput = {
   game_name: string
   sku: string
   ticket_mode: string
+  game_type: string
   tickets_per_deal: number
   price: number
   payout: number
@@ -32,6 +33,7 @@ export default function NewJobPage() {
       game_name: '',
       sku: '',
       ticket_mode: '5w',
+      game_type: 'instant',
       tickets_per_deal: 0,
       price: 0,
       payout: 0,
@@ -83,6 +85,7 @@ export default function NewJobPage() {
         game_name: '',
         sku: '',
         ticket_mode: '5w',
+        game_type: 'instant',
         tickets_per_deal: 0,
         price: 0,
         payout: 0,
@@ -141,6 +144,7 @@ export default function NewJobPage() {
           game_name: b.game_name,
           sku: b.sku,
           ticket_mode: b.ticket_mode,
+          game_type: b.game_type,
           tickets_per_deal: b.tickets_per_deal,
           price: b.price,
           payout: b.payout,
@@ -357,6 +361,24 @@ export default function NewJobPage() {
                       {TICKET_MODES.map((m) => (
                         <option key={m.value} value={m.value}>
                           {m.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[11px] font-semibold text-ptm-text3 uppercase tracking-wider">
+                      Game Type
+                    </label>
+                    <select
+                      className="bg-ptm-bg4 border border-ptm-border text-ptm-text text-sm px-3 py-2 rounded outline-none focus:border-ptm-accent transition-colors"
+                      value={batch.game_type}
+                      onChange={(e) =>
+                        updateBatch(batch.id, 'game_type', e.target.value)
+                      }
+                    >
+                      {GAME_TYPES.map((g) => (
+                        <option key={g.value} value={g.value}>
+                          {g.label}
                         </option>
                       ))}
                     </select>

@@ -10,6 +10,7 @@ type BatchInput = {
   game_name: string
   sku: string
   ticket_mode: string
+  game_type: string
   tickets_per_deal: number
   price: number
   payout: number
@@ -72,6 +73,7 @@ export async function createJob(formData: {
     game_name: string
     sku: string | null
     ticket_mode: string
+    game_type: string
     tickets_per_deal: number
     price: number
     payout: number
@@ -85,6 +87,7 @@ export async function createJob(formData: {
         game_name: batch.game_name.trim(),
         sku: batch.sku || null,
         ticket_mode: batch.ticket_mode || '5w',
+        game_type: batch.game_type || 'instant',
         tickets_per_deal: batch.tickets_per_deal || 0,
         price: batch.price || 0,
         payout: batch.payout || 0,

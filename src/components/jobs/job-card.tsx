@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { formatSerial, pct, cn } from '@/lib/utils'
+import { formatSerial, pct, cn, downloadQBCsv } from '@/lib/utils'
 import { TICKET_MODES } from '@/lib/constants'
 import type { Job } from '@/types/database'
 import { StagePipeline } from './stage-pipeline'
@@ -16,6 +16,7 @@ import {
   MonitorSmartphone,
   ChevronDown,
   Archive,
+  FileSpreadsheet,
 } from 'lucide-react'
 
 interface JobCardProps {
@@ -262,6 +263,13 @@ export function JobCard({ job }: JobCardProps) {
               onClick={() => setShowShipLog(true)}
             >
               <Package size={13} /> Ship Log
+            </button>
+            <button
+              className="flex items-center gap-1.5 text-xs font-medium text-ptm-green bg-ptm-bg3 border border-ptm-green/30 px-3.5 py-1.5 rounded-lg cursor-pointer transition-all hover:brightness-110 hover:border-ptm-green/50"
+              onClick={() => downloadQBCsv(job)}
+              title="Download QuickBooks CSV"
+            >
+              <FileSpreadsheet size={13} /> QB CSV
             </button>
             <button
               className="flex items-center gap-1.5 text-xs font-medium text-ptm-monday bg-ptm-bg3 border border-ptm-monday/30 px-3.5 py-1.5 rounded-lg cursor-not-allowed opacity-50"

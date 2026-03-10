@@ -18,6 +18,7 @@ export type Deal = {
   game_name: string
   sku: string | null
   ticket_mode: '5w' | '3w'
+  game_type: 'instant' | 'seal'
   tickets_per_deal: number
   price: number
   payout: number

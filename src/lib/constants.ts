@@ -14,3 +14,8 @@ export const TICKET_MODES = [
   { label: '5-Window (70/sheet)', value: '5w' as const, perSheet: 70 },
   { label: '3-Window (100/sheet)', value: '3w' as const, perSheet: 100 },
 ]
+
+export const GAME_TYPES = [
+  { label: 'Instant Ticket', value: 'instant' as const },
+  { label: 'Seal Card', value: 'seal' as const },
+]
