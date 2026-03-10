@@ -2,7 +2,7 @@
 
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
-import { formatSerial, currency, pct } from '@/lib/utils'
+import { formatSerial, currency } from '@/lib/utils'
 import type { Job } from '@/types/database'
 
 interface ShipLogProps {
@@ -63,7 +63,7 @@ export function ShipLog({ job, onClose }: ShipLogProps) {
                 'Price',
                 'Payout',
                 'Profit',
-                'Yield',
+                'Status',
               ].map((h) => (
                 <th
                   key={h}
@@ -78,18 +78,24 @@ export function ShipLog({ job, onClose }: ShipLogProps) {
             {deals.map((d) => {
               const profit =
                 (d.tickets_per_deal || 0) * (d.price || 0) - (d.payout || 0)
-              const yld =
-                d.sheets_in > 0
-                  ? pct(
-                      d.sheets_in -
-                        (d.glue_damage || 0) -
-                        (d.cut_damage || 0),
-                      d.sheets_in
-                    ) + '%'
-                  : '—'
+              const statusLabel =
+                d.status === 'lost_gluer'
+                  ? 'Lost – Gluer'
+                  : d.status === 'lost_die_cut'
+                    ? 'Lost – Die Cut'
+                    : 'Active'
+              const statusColor =
+                d.status === 'lost_gluer'
+                  ? 'text-ptm-red'
+                  : d.status === 'lost_die_cut'
+                    ? 'text-ptm-yellow'
+                    : 'text-ptm-green'
 
               return (
-                <tr key={d.id}>
+                <tr
+                  key={d.id}
+                  className={d.status !== 'active' ? 'opacity-60' : ''}
+                >
                   <td className="px-2.5 py-2 border-b border-ptm-border text-ptm-text2">
                     {d.game_name}
                   </td>
@@ -111,8 +117,8 @@ export function ShipLog({ job, onClose }: ShipLogProps) {
                   <td className="px-2.5 py-2 border-b border-ptm-border text-ptm-text2">
                     {currency(profit)}
                   </td>
-                  <td className="px-2.5 py-2 border-b border-ptm-border text-ptm-text2">
-                    {yld}
+                  <td className={`px-2.5 py-2 border-b border-ptm-border font-semibold ${statusColor}`}>
+                    {statusLabel}
                   </td>
                 </tr>
               )

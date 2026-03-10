@@ -20,11 +20,11 @@ export type Deal = {
   tickets_per_deal: number
   price: number
   payout: number
-  sheets_in: number
-  glue_damage: number
-  cut_damage: number
+  status: DealStatus
   created_at: string
 }
+
+export type DealStatus = 'active' | 'lost_gluer' | 'lost_die_cut'
 
 export type Stage =
   | 'Art'

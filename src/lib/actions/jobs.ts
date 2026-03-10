@@ -3,23 +3,25 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import type { Stage } from '@/types/database'
+import type { Stage, DealStatus } from '@/types/database'
 import { STAGES } from '@/lib/constants'
 
-type DealInput = {
+type BatchInput = {
   game_name: string
   sku: string
   ticket_mode: string
   tickets_per_deal: number
   price: number
   payout: number
+  starting_serial: number
+  deal_count: number
 }
 
 export async function createJob(formData: {
   customer: string
   due_date: string
   notes: string
-  deals: DealInput[]
+  batches: BatchInput[]
 }) {
   const supabase = await createClient()
 
@@ -27,8 +29,16 @@ export async function createJob(formData: {
     return { error: 'Customer name is required' }
   }
 
-  if (formData.deals.some(d => !d.game_name.trim())) {
-    return { error: 'All deals need a game name' }
+  if (formData.batches.some(b => !b.game_name.trim())) {
+    return { error: 'All batches need a game name' }
+  }
+
+  if (formData.batches.some(b => b.deal_count < 1)) {
+    return { error: 'Each batch needs at least 1 deal' }
+  }
+
+  if (formData.batches.some(b => b.starting_serial < 1)) {
+    return { error: 'Starting serial must be at least 1' }
   }
 
   // Generate job number
@@ -37,16 +47,6 @@ export async function createJob(formData: {
     .select('*', { count: 'exact', head: true })
 
   const jobNumber = `JOB-${new Date().getFullYear()}-${String((count || 0) + 1).padStart(4, '0')}`
-
-  // Atomically claim serial numbers
-  const { data: serialData, error: serialError } = await supabase
-    .rpc('claim_serials', { count: formData.deals.length })
-
-  if (serialError || serialData === null) {
-    return { error: 'Failed to assign serial numbers' }
-  }
-
-  const startSerial = serialData as number
 
   // Create the job
   const { data: job, error: jobError } = await supabase
@@ -65,17 +65,32 @@ export async function createJob(formData: {
     return { error: jobError?.message || 'Failed to create job' }
   }
 
-  // Create deals with assigned serials
-  const deals = formData.deals.map((d, i) => ({
-    job_id: job.id,
-    serial: startSerial + i,
-    game_name: d.game_name.trim(),
-    sku: d.sku || null,
-    ticket_mode: d.ticket_mode || '5w',
-    tickets_per_deal: d.tickets_per_deal || 0,
-    price: d.price || 0,
-    payout: d.payout || 0,
-  }))
+  // Expand batches into individual deals
+  const deals: {
+    job_id: string
+    serial: number
+    game_name: string
+    sku: string | null
+    ticket_mode: string
+    tickets_per_deal: number
+    price: number
+    payout: number
+  }[] = []
+
+  for (const batch of formData.batches) {
+    for (let i = 0; i < batch.deal_count; i++) {
+      deals.push({
+        job_id: job.id,
+        serial: batch.starting_serial + i,
+        game_name: batch.game_name.trim(),
+        sku: batch.sku || null,
+        ticket_mode: batch.ticket_mode || '5w',
+        tickets_per_deal: batch.tickets_per_deal || 0,
+        price: batch.price || 0,
+        payout: batch.payout || 0,
+      })
+    }
+  }
 
   const { error: dealsError } = await supabase
     .from('deals')
@@ -86,6 +101,13 @@ export async function createJob(formData: {
     await supabase.from('jobs').delete().eq('id', job.id)
     return { error: dealsError.message }
   }
+
+  // Update next_serial to the highest serial + 1
+  const maxSerial = Math.max(...deals.map(d => d.serial))
+  await supabase
+    .from('app_settings')
+    .update({ value: String(maxSerial + 1) })
+    .eq('key', 'next_serial')
 
   revalidatePath('/')
   redirect('/')
@@ -109,22 +131,26 @@ export async function updateJobStage(jobId: string, stage: Stage) {
   revalidatePath('/')
 }
 
-export async function updateProductionData(
-  dealId: string,
-  data: { sheets_in: number; glue_damage: number; cut_damage: number }
+export async function updateDealStatuses(
+  updates: { id: string; status: DealStatus }[]
 ) {
   const supabase = await createClient()
-  const { error } = await supabase
-    .from('deals')
-    .update({
-      sheets_in: data.sheets_in,
-      glue_damage: data.glue_damage,
-      cut_damage: data.cut_damage,
-    })
-    .eq('id', dealId)
 
-  if (error) {
-    return { error: error.message }
+  const validStatuses: DealStatus[] = ['active', 'lost_gluer', 'lost_die_cut']
+  if (updates.some(u => !validStatuses.includes(u.status))) {
+    return { error: 'Invalid deal status' }
+  }
+
+  // Update each deal's status
+  for (const update of updates) {
+    const { error } = await supabase
+      .from('deals')
+      .update({ status: update.status })
+      .eq('id', update.id)
+
+    if (error) {
+      return { error: error.message }
+    }
   }
 
   revalidatePath('/')

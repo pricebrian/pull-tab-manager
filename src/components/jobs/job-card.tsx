@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { formatSerial, currency, pct } from '@/lib/utils'
+import { formatSerial, pct } from '@/lib/utils'
 import { TICKET_MODES } from '@/lib/constants'
 import type { Job } from '@/types/database'
 import { StagePipeline } from './stage-pipeline'
@@ -23,16 +23,12 @@ export function JobCard({ job }: JobCardProps) {
   const totalDeals = deals.length
   const totalTickets = deals.reduce((s, d) => s + (d.tickets_per_deal || 0), 0)
 
+  const lostCount = deals.filter((d) => d.status !== 'active').length
   const overallYield = (() => {
-    const tracked = deals.filter((d) => d.sheets_in > 0)
-    if (!tracked.length) return null
-    const totalIn = tracked.reduce((s, d) => s + (d.sheets_in || 0), 0)
-    const totalOut = tracked.reduce(
-      (s, d) =>
-        s + (d.sheets_in || 0) - (d.glue_damage || 0) - (d.cut_damage || 0),
-      0
-    )
-    return pct(totalOut, totalIn)
+    if (!deals.length) return null
+    if (lostCount === 0) return null // no losses recorded yet
+    const active = deals.filter((d) => d.status === 'active').length
+    return pct(active, deals.length)
   })()
 
   return (
@@ -109,16 +105,15 @@ export function JobCard({ job }: JobCardProps) {
             const sheets = Math.ceil(
               (d.tickets_per_deal || 0) / mode.perSheet
             )
-            const out =
-              (d.sheets_in || 0) -
-              (d.glue_damage || 0) -
-              (d.cut_damage || 0)
-            const yld = d.sheets_in > 0 ? pct(out, d.sheets_in) : null
 
             return (
               <div
                 key={d.id}
-                className="flex items-center gap-2 text-xs px-2.5 py-1.5 bg-ptm-bg3 rounded flex-wrap"
+                className={`flex items-center gap-2 text-xs px-2.5 py-1.5 rounded flex-wrap ${
+                  d.status !== 'active'
+                    ? 'bg-ptm-bg4 opacity-60'
+                    : 'bg-ptm-bg3'
+                }`}
               >
                 <span className="font-[family-name:var(--font-barlow-condensed)] font-semibold text-ptm-accent2 text-[13px] min-w-[80px]">
                   #{formatSerial(d.serial)}
@@ -131,19 +126,14 @@ export function JobCard({ job }: JobCardProps) {
                   {(d.tickets_per_deal || 0).toLocaleString()} tickets ·{' '}
                   {sheets} sheets
                 </span>
-                {yld !== null && (
-                  <span
-                    className="text-[11px] font-semibold"
-                    style={{
-                      color:
-                        parseFloat(yld) >= 98
-                          ? '#4ade80'
-                          : parseFloat(yld) >= 94
-                            ? '#fbbf24'
-                            : '#f87171',
-                    }}
-                  >
-                    {yld}% yield
+                {d.status === 'lost_gluer' && (
+                  <span className="text-[11px] font-semibold text-ptm-red">
+                    Lost at Gluer
+                  </span>
+                )}
+                {d.status === 'lost_die_cut' && (
+                  <span className="text-[11px] font-semibold text-ptm-yellow">
+                    Lost at Die Cut
                   </span>
                 )}
               </div>
