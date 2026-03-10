@@ -2,7 +2,7 @@
 
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
-import { formatSerial, currency } from '@/lib/utils'
+import { formatSerial, currency, printModalContent } from '@/lib/utils'
 import type { Job } from '@/types/database'
 
 interface ShipLogProps {
@@ -28,7 +28,7 @@ export function ShipLog({ job, onClose }: ShipLogProps) {
 
   return (
     <Modal title="Ship Log / Pick List" onClose={onClose} wide>
-      <div id="ship-log-print">
+      <div id="ship-log-print" className="modal-print-area">
         {/* Header */}
         <div className="ship-log-header flex justify-between items-start mb-4 pb-4 border-b-2 border-ptm-border2 print:border-black/20">
           <div>
@@ -160,7 +160,7 @@ export function ShipLog({ job, onClose }: ShipLogProps) {
         </table>
 
         <div className="flex gap-2.5 mt-5 no-print">
-          <Button variant="primary" onClick={() => window.print()}>
+          <Button variant="primary" onClick={printModalContent}>
             Print / Export PDF
           </Button>
           <Button variant="secondary" onClick={onClose}>

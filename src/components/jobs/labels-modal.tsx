@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
-import { formatSerial, currency } from '@/lib/utils'
+import { formatSerial, currency, printModalContent } from '@/lib/utils'
 import type { Job, Deal } from '@/types/database'
 import JsBarcode from 'jsbarcode'
 
@@ -139,7 +139,7 @@ export function LabelsModal({ job, onClose }: LabelsModalProps) {
 
   return (
     <Modal title="Deal Labels" onClose={onClose} wide>
-      <div id="labels-print">
+      <div id="labels-print" className="modal-print-area">
         <div className="text-xs text-ptm-text3 mb-4 no-print">
           {deals.length} deals × 2 labels each = {deals.length * 2} labels
           total (Box + Flare per deal)
@@ -155,7 +155,7 @@ export function LabelsModal({ job, onClose }: LabelsModalProps) {
         </div>
 
         <div className="flex gap-2.5 mt-5 justify-center no-print">
-          <Button variant="primary" onClick={() => window.print()}>
+          <Button variant="primary" onClick={printModalContent}>
             Print All Labels
           </Button>
           <Button variant="secondary" onClick={onClose}>
