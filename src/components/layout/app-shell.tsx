@@ -1,11 +1,7 @@
 import Link from 'next/link'
 import { formatSerial } from '@/lib/utils'
 import { getNextSerial } from '@/lib/queries'
-import { Briefcase } from 'lucide-react'
-
-const navItems = [
-  { label: 'Jobs', href: '/', icon: Briefcase, active: true },
-]
+import { LogoutButton } from './logout-button'
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const nextSerial = await getNextSerial()
@@ -36,6 +32,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
             >
               + New Job
             </Link>
+            <LogoutButton />
           </div>
         </div>
         {/* Serial — mobile only */}
