@@ -16,15 +16,6 @@ export function ShipLog({ job, onClose }: ShipLogProps) {
     (s, d) => s + (d.tickets_per_deal || 0),
     0
   )
-  const totalValue = deals.reduce(
-    (s, d) => s + (d.tickets_per_deal || 0) * (d.price || 0),
-    0
-  )
-  const totalProfit = deals.reduce(
-    (s, d) =>
-      s + ((d.tickets_per_deal || 0) * (d.price || 0) - (d.payout || 0)),
-    0
-  )
 
   return (
     <Modal title="Ship Log / Pick List" onClose={onClose} wide>
@@ -68,18 +59,6 @@ export function ShipLog({ job, onClose }: ShipLogProps) {
               {totalTickets.toLocaleString()}
             </b>{' '}
             Total Tickets
-          </div>
-          <div className="text-xs text-ptm-text2 print:text-gray-600">
-            <b className="text-ptm-text font-[family-name:var(--font-barlow-condensed)] text-base print:text-black">
-              {currency(totalValue)}
-            </b>{' '}
-            Total Value
-          </div>
-          <div className="text-xs text-ptm-text2 print:text-gray-600">
-            <b className="text-ptm-text font-[family-name:var(--font-barlow-condensed)] text-base print:text-black">
-              {currency(totalProfit)}
-            </b>{' '}
-            Total Profit
           </div>
         </div>
 
@@ -149,12 +128,9 @@ export function ShipLog({ job, onClose }: ShipLogProps) {
                 {totalTickets.toLocaleString()}
               </td>
               <td
-                colSpan={2}
+                colSpan={3}
                 className="border-t-2 border-ptm-border2 print:border-black/20"
               ></td>
-              <td className="px-2 py-2 border-t-2 border-ptm-border2 text-ptm-text font-bold print:text-black print:border-black/20">
-                {currency(totalProfit)}
-              </td>
             </tr>
           </tfoot>
         </table>
