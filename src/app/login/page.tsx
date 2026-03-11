@@ -34,7 +34,7 @@ export default function LoginPage() {
             <Lock size={24} className="text-ptm-accent" />
           </div>
           <h1 className="font-[family-name:var(--font-barlow-condensed)] font-extrabold text-2xl tracking-widest text-ptm-accent">
-            PULL TAB MANAGER
+            OAKDAY PULL-TAB MANAGER
           </h1>
           <p className="text-sm text-ptm-text3 mt-1">
             Enter passphrase to continue

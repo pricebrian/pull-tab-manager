@@ -13,7 +13,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center justify-between">
           <div className="min-w-0">
             <div className="font-[family-name:var(--font-barlow-condensed)] font-extrabold text-lg sm:text-xl tracking-widest text-ptm-accent truncate">
-              ◈ PULL TAB MANAGER
+              ◈ OAKDAY PULL-TAB MANAGER
             </div>
             <div className="text-[10px] sm:text-[11px] text-ptm-text3 tracking-widest uppercase mt-0.5">
               Production Management System
