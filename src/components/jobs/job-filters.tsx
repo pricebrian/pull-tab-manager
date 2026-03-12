@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { STAGES } from '@/lib/constants'
 import type { Job } from '@/types/database'
 import { JobCard } from './job-card'
+import { QuickUpdate } from './quick-update'
 
 interface JobFiltersProps {
   jobs: Job[]
@@ -48,6 +49,7 @@ export function JobFilters({ jobs }: JobFiltersProps) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        <QuickUpdate />
         <div className="flex gap-1 flex-wrap">
           {FILTER_OPTIONS.map((s) => (
             <button
