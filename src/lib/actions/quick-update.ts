@@ -107,8 +107,14 @@ export async function interpretUpdate(
       .map((block) => block.text)
       .join('')
 
-    // Strip markdown fences if Haiku wraps the JSON
-    const responseText = rawText.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '')
+    // Strip markdown fences and any surrounding whitespace
+    const responseText = rawText
+      .trim()
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```\s*$/i, '')
+      .trim()
+
+    console.log('Quick Update raw response:', rawText.substring(0, 200))
 
     const parsed = JSON.parse(responseText)
 
