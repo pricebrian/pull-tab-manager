@@ -102,10 +102,13 @@ export async function interpretUpdate(
       ],
     })
 
-    const responseText = message.content
+    const rawText = message.content
       .filter((block): block is Anthropic.TextBlock => block.type === 'text')
       .map((block) => block.text)
       .join('')
+
+    // Strip markdown fences if Haiku wraps the JSON
+    const responseText = rawText.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '')
 
     const parsed = JSON.parse(responseText)
 
