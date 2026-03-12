@@ -8,6 +8,7 @@ import {
   archiveJob,
   unarchiveJob,
 } from './jobs'
+import { revalidatePath } from 'next/cache'
 import { STAGES } from '@/lib/constants'
 import type { Job } from '@/types/database'
 import type { Stage, DealStatus } from '@/types/database'
@@ -254,5 +255,6 @@ export async function executeActions(
     if (result?.error) return { error: result.error }
   }
 
+  revalidatePath('/')
   return {}
 }
