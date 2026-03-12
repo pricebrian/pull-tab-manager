@@ -198,9 +198,11 @@ export async function interpretUpdate(
     }
   } catch (err) {
     console.error('Quick Update AI error:', err)
+    const message =
+      err instanceof Error ? err.message : 'Unknown error'
     return {
       success: false,
-      error: 'Failed to interpret the update. Please try rephrasing.',
+      error: `AI error: ${message}`,
     }
   }
 }
