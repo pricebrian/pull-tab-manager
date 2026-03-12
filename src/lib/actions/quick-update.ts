@@ -19,8 +19,7 @@ function buildJobContext(jobs: Job[]) {
   const jobsByKey: Record<string, Job> = {}
   const lines: string[] = ['JOBS:']
 
-  const activeJobs = jobs.filter((j) => !j.archived)
-  activeJobs.forEach((job, i) => {
+  jobs.forEach((job, i) => {
     const jKey = `J${i + 1}`
     idMap[jKey] = job.id
     jobsByKey[jKey] = job
@@ -31,8 +30,9 @@ function buildJobContext(jobs: Job[]) {
       return `${dKey}:#${d.serial} "${d.game_name}" ${d.status}`
     })
 
+    const archiveTag = job.archived ? ' [ARCHIVED]' : ''
     lines.push(
-      `${jKey}: ${job.job_number} | "${job.customer}" | Stage: ${job.stage} | Deals: [${dealParts.join(', ')}]`
+      `${jKey}: ${job.job_number} | "${job.customer}" | Stage: ${job.stage}${archiveTag} | Deals: [${dealParts.join(', ')}]`
     )
   })
 
